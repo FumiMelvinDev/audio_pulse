@@ -6,6 +6,14 @@ import 'package:provider/provider.dart';
 class CurrentSongPlaying extends StatelessWidget {
   const CurrentSongPlaying({super.key});
 
+  String formatDuration(Duration duration) {
+    String twoDigitSeconds =
+        duration.inSeconds.remainder(60).toString().padLeft(2, '0');
+    String formattedDuration = "${duration.inMinutes}:$twoDigitSeconds";
+
+    return formattedDuration;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<PlaylistProvider>(
@@ -43,12 +51,19 @@ class CurrentSongPlaying extends StatelessWidget {
                                 children: [
                                   Text(
                                     currentSong.songName,
-                                    style: const TextStyle(
+                                    style: TextStyle(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .inversePrimary,
                                         fontSize: 18,
                                         fontWeight: FontWeight.w700),
                                   ),
                                   Text(currentSong.artistName,
-                                      style: const TextStyle()),
+                                      style: TextStyle(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .inversePrimary,
+                                      )),
                                 ],
                               ),
                             ),
@@ -70,16 +85,36 @@ class CurrentSongPlaying extends StatelessWidget {
                   ),
                   Column(
                     children: [
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 12.0),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12.0),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text("0:00"),
-                            Icon(Icons.shuffle),
-                            Icon(Icons.repeat),
                             Text(
-                              "0:00",
+                              formatDuration(value.currentDuration),
+                              style: TextStyle(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .inversePrimary,
+                              ),
+                            ),
+                            Icon(
+                              Icons.shuffle,
+                              color:
+                                  Theme.of(context).colorScheme.inversePrimary,
+                            ),
+                            Icon(
+                              Icons.repeat,
+                              color:
+                                  Theme.of(context).colorScheme.inversePrimary,
+                            ),
+                            Text(
+                              formatDuration(value.totalDuration),
+                              style: TextStyle(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .inversePrimary,
+                              ),
                             ),
                           ],
                         ),
@@ -89,11 +124,14 @@ class CurrentSongPlaying extends StatelessWidget {
                       ),
                       Slider(
                         min: 0,
-                        max: 100,
-                        value: 25,
+                        max: value.totalDuration.inSeconds.toDouble(),
+                        value: value.currentDuration.inSeconds.toDouble(),
                         activeColor: Colors.deepOrange,
                         inactiveColor: Colors.grey,
-                        onChanged: (value) {},
+                        onChanged: (double double) {},
+                        onChangeEnd: (double double) {
+                          value.seekTo(Duration(seconds: double.toInt()));
+                        },
                       ),
                     ],
                   ),
@@ -107,9 +145,14 @@ class CurrentSongPlaying extends StatelessWidget {
                         children: [
                           Expanded(
                             child: GestureDetector(
-                              onTap: () {},
-                              child: const NeumorphicBox(
-                                child: Icon(Icons.skip_previous_outlined),
+                              onTap: value.previousSong,
+                              child: NeumorphicBox(
+                                child: Icon(
+                                  Icons.skip_previous_outlined,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .inversePrimary,
+                                ),
                               ),
                             ),
                           ),
@@ -119,18 +162,33 @@ class CurrentSongPlaying extends StatelessWidget {
                           Expanded(
                             flex: 2,
                             child: GestureDetector(
-                              onTap: () {},
-                              child: const NeumorphicBox(
-                                child: Icon(Icons.pause_outlined),
+                              onTap: value.pauseOrResume,
+                              child: NeumorphicBox(
+                                child: Icon(
+                                  value.isPlaying
+                                      ? Icons.pause_outlined
+                                      : Icons.play_arrow_outlined,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .inversePrimary,
+                                ),
                               ),
                             ),
                           ),
                           const SizedBox(
                             width: 20,
                           ),
-                          const Expanded(
-                            child: NeumorphicBox(
-                                child: Icon(Icons.skip_next_outlined)),
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: value.nextSong,
+                              child: NeumorphicBox(
+                                  child: Icon(
+                                Icons.skip_next_outlined,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .inversePrimary,
+                              )),
+                            ),
                           ),
                         ],
                       )
